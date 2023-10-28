@@ -1,0 +1,42 @@
+.App {
+  text-align: center;
+  background-color: black; /* Background color similar to Netflix */
+  font-family: 'Helvetica Neue', sans-serif; /* Use a Netflix-like font */
+}
+
+.App-header {
+  background-color: #E50914; /* Netflix red color */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px; /* Adjust the font size to your preference */
+  color: white;
+}
+
+.App-logo {
+  height: 100px; /* Adjust the logo size as needed */
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin 20s linear infinite; /* Rotate logo animation */
+  }
+}
+
+.App-link {
+  color: #E50914; /* Netflix red color */
+  text-decoration: none;
+  font-weight: bold;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
