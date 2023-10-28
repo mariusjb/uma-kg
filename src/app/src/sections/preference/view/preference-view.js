@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import PreferenceSearch from '../preference-search';
 import PreferenceList from '../preference-list';
 import Button from '@mui/material/Button';
+import { useNavigate } from 'react-router-dom';
 
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
@@ -9,19 +10,22 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 export default function PreferenceView() {
 
+    const initialPreference = JSON.parse(localStorage.getItem('preference'));
+
     const [search, setSearch] = useState({
         query: '',
         results: [],
     });
 
-    const [currentPreference, setCurrentPreference] = useState([])
+    const [currentPreference, setCurrentPreference] = useState(initialPreference || []);
 
+    const navigate = useNavigate();
+    
     const handleSearch = useCallback(async (inputValue) => {
         setSearch((prevState) => ({
             ...prevState,
             query: inputValue,
         }));
-        console.log("inputValue", inputValue);
 
         if (inputValue) {
             try {
@@ -54,8 +58,7 @@ export default function PreferenceView() {
             }
             const results = search.results.filter((movie) => movie.id === id);
             setCurrentPreference((prevState) => {
-                const updatedPreference = [...prevState, results[0]];
-                console.log("currentPreference", updatedPreference);
+                const updatedPreference = [results[0], ...prevState];
                 return updatedPreference;
             });
         },
@@ -64,16 +67,20 @@ export default function PreferenceView() {
 
     const handleDelete = useCallback(
         (id) => {
-            console.log("handleDelete", id);
             setCurrentPreference((prevState) => {
                 const updatedPreference = prevState.filter((movie) => movie.id !== id);
-                console.log("currentPreference", updatedPreference);
                 return updatedPreference;
             });
         },
         [currentPreference]
     );
 
+    const handleNavigate = useCallback(async () => {
+        localStorage.setItem('preference', JSON.stringify(currentPreference));
+    
+        // Wait for the data to be stored in localStorage before navigating
+        await navigate('/recommendation');
+    }, [currentPreference, navigate]);
 
     return (
         <div>
@@ -93,7 +100,7 @@ export default function PreferenceView() {
             </div>
             <div style={{ position: 'fixed', bottom: 0, width: '100%', backgroundColor: 'red', height: '60px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 20px' }}>
-                    <Button sx={{ color: "black", backgroundColor: 'white', top: "50%", transform: "translateY(-50%)", position: "absolute" }} endIcon={<ArrowForwardIcon />}>Recommend</Button>
+                    <Button onClick={handleNavigate} sx={{ color: "black", backgroundColor: 'white', top: "50%", transform: "translateY(-50%)", position: "absolute" }} endIcon={<ArrowForwardIcon />}>Recommend</Button>
                 </div>
             </div>
         </div>

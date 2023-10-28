@@ -1,9 +1,10 @@
+import logging
 import flask
 from flask import request, jsonify
 from flask_cors import CORS
 import requests
 from utils.sparql import REF
-from utils.result import get_unique_dicts 
+from utils.result import transform, movie_transform
 
 
 app = flask.Flask(__name__)
@@ -19,12 +20,9 @@ HEADERS = {
 
 
 @app.route("/movies", methods=["GET"])
-def get_movies():
-    title = request.args.get(
-        "title"
-    )  # -> http://127.0.0.1:5000/movies?title=The%20Godfather
-
-    limit = request.args.get("limit", 50)
+def get_movies_by_title():
+    title = request.args.get("title")
+    limit = request.args.get("limit", 20)
 
     sparql_query = f"""
     {REF}
@@ -47,24 +45,45 @@ def get_movies():
     """
 
     response = requests.post(BASE_ENDPOINT, headers=HEADERS, data=sparql_query)
-    data = response.json()
 
-    data_transformed = [
-        {
-            "id": x["filmId"]["value"],
-            "imdbId": x["page"]["value"].split("/")[-1],
-            "title": x["filmTitle"]["value"],
-            "releaseDate": x["releaseDate"]["value"]
-            if x.get("releaseDate") is not None
-            else None,
-            "genre": x["filmGenre"]["value"]
-            if x.get("filmGenre") is not None
-            else None,
-        }
-        for x in data["results"]["bindings"]
-    ]
+    if response.status_code == 200:
+        data = response.json()
+        data_transformed = movie_transform(data)
+        return transform(data_transformed)
+    
+    return jsonify({"error": "Unable to retrieve movie data"})
 
-    return get_unique_dicts(data_transformed)  # handle duplicates of dicts in the list for now
+
+@app.route("/movies/id", methods=["GET"])
+def get_movie_by_id():
+    movieId = request.args.get("movieId")
+
+    sparql_query = f"""
+    {REF}
+    SELECT DISTINCT ?filmId ?filmTitle ?releaseDate ?filmGenre ?page
+    WHERE {{
+        ?sub a lmdb:Film.
+        ?sub lmdb:filmid ?filmId.
+        ?sub rdfs:label ?filmTitle.
+        OPTIONAL {{
+            ?sub lmdb:initial_release_date ?releaseDate.
+            ?sub lmdb:genre ?genreResource.
+            ?genreResource lmdb:film_genre_name ?filmGenre.
+        }}
+        ?sub foaf:page ?page.
+        FILTER regex(?page, "http://www.imdb.com/title/tt", "i")
+        FILTER(?filmId = {movieId})
+    }}
+    """
+
+    response = requests.post(BASE_ENDPOINT, headers=HEADERS, data=sparql_query)
+
+    if response.status_code == 200:
+        data = response.json()
+        data_transformed = movie_transform(data)
+        return transform(data_transformed)
+
+    return jsonify({"error": "Unable to retrieve movie data"})
 
 
 if __name__ == "__main__":
