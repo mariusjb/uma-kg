@@ -1,5 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import PreferenceSearch from '../preference-search';
+import PreferenceList from '../preference-list';
+import Button from '@mui/material/Button';
+
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 // ----------------------------------------------------------------------
 
@@ -41,10 +45,13 @@ export default function PreferenceView() {
         }
     }, [search.query]);
 
-    // add to currentPreference given id
+
     const handleClick = useCallback(
         (id) => {
-            console.log("handleClick", id);
+            const isDuplicate = currentPreference.some((movie) => movie.id === id);
+            if (isDuplicate) {
+                return;
+            }
             const results = search.results.filter((movie) => movie.id === id);
             setCurrentPreference((prevState) => {
                 const updatedPreference = [...prevState, results[0]];
@@ -55,22 +62,40 @@ export default function PreferenceView() {
         [currentPreference, search.results]
     );
 
+    const handleDelete = useCallback(
+        (id) => {
+            console.log("handleDelete", id);
+            setCurrentPreference((prevState) => {
+                const updatedPreference = prevState.filter((movie) => movie.id !== id);
+                console.log("currentPreference", updatedPreference);
+                return updatedPreference;
+            });
+        },
+        [currentPreference]
+    );
+
 
     return (
-        <div style={{ margin: '10%', display: 'flex', alignItems: 'center' }}>
-            <div style={{ flex: 1, marginRight: '20px' }}>
-                <div style={{ fontSize: '24px', marginBottom: '20px' }}>What Movies Do You Like?</div>
-                <PreferenceSearch
-                    query={search.query}
-                    results={search.results}
-                    handleSearch={handleSearch}
-                    handleClick={handleClick}
-                />
+        <div>
+            <div style={{ margin: '5%', display: 'flex' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', paddingRight: '5%' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '20px' }}>What Movies Do You Like?</div>
+                    <PreferenceSearch
+                        query={search.query}
+                        results={search.results}
+                        handleSearch={handleSearch}
+                        handleClick={handleClick}
+                    />
+                </div>
+                <div style={{ flex: 2 }}>
+                    <PreferenceList preferences={currentPreference} handleDelete={handleDelete} />
+                </div>
             </div>
-            <div style={{ flex: 2 }}>
-                {/* Your results content here */}
+            <div style={{ position: 'fixed', bottom: 0, width: '100%', backgroundColor: 'red', height: '60px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 20px' }}>
+                    <Button sx={{ color: "black", backgroundColor: 'white', top: "50%", transform: "translateY(-50%)", position: "absolute" }} endIcon={<ArrowForwardIcon />}>Recommend</Button>
+                </div>
             </div>
         </div>
-
     );
 }
