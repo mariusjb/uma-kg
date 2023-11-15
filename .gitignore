@@ -1,1 +1,4 @@
 .venv/
+.data/
+src/app/node_modules/
+*__pycache__/
