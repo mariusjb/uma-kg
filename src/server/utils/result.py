@@ -17,8 +17,10 @@ def movie_transform(data):
     ]
 
 def transform(list_of_dicts):
+    if not list_of_dicts:
+        return None
+    
     df = pd.DataFrame.from_dict(list_of_dicts)
-
     export_list = list()
 
     for _, film_df in df.groupby("id"):
