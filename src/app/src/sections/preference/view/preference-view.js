@@ -56,6 +56,7 @@ export default function PreferenceView() {
             if (isDuplicate) {
                 return;
             }
+            console.log(search.results);
             const results = search.results.filter((movie) => movie.id === id);
             setCurrentPreference((prevState) => {
                 const updatedPreference = [results[0], ...prevState];
